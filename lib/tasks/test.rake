@@ -8,11 +8,15 @@ class PrecompileBenchmark
   end
 
   def assets_files
-    Dir.glob(File.join(assets_path, "*"))
+    Dir.glob(File.join(assets_path, "*")).sort
   end
 
   def public_path
     Rails.root.join('public', 'assets')
+  end
+
+  def clear_cache
+    FileUtils.rm_rf Rails.root.join('tmp', 'cache')
   end
 
   def clean_up
@@ -24,6 +28,7 @@ class PrecompileBenchmark
   def precompile_assets(runtime)
     @multiplier.times do
       FileUtils.rm_rf public_path
+      clear_cache
       system("bundle exec rake assets:precompile RAILS_ENV=production EXECJS_RUNTIME=#{runtime} 2>/dev/null") # -s and -q were ignored
     end
   end
