@@ -1,6 +1,6 @@
 class PrecompileBenchmark
   def initialize
-    @multiplier = ENV['TEST_MULTIPLIER'].to_i
+    @multiplier = ENV['TEST_MULTIPLIER'].blank? ? 1 : ENV['TEST_MULTIPLIER'].to_i
   end 
 
   def assets_path
@@ -14,7 +14,7 @@ class PrecompileBenchmark
   def precompile_assets(runtime)
     @multiplier.times do
       FileUtils.rm_rf public_path
-      system("bundle exec rake assets:precompile RAILS_ENV=production EXECJS_RUNTIME=#{runtime}") # -s and -q were ignored
+      system("bundle exec rake assets:precompile RAILS_ENV=production EXECJS_RUNTIME=#{runtime} 2>/dev/null") # -s and -q were ignored
     end
   end
 
