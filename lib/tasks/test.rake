@@ -4,11 +4,21 @@ class PrecompileBenchmark
   end 
 
   def assets_path
-    Rails.root.join('app', 'assets', 'javascripts', '*')
+    Rails.root.join('app', 'assets', 'javascripts')
+  end
+
+  def assets_files
+    Dir.glob(File.join(assets_path, "*"))
   end
 
   def public_path
     Rails.root.join('public', 'assets')
+  end
+
+  def clean_up
+    FileUtils.rm_rf assets_files
+    FileUtils.rm_rf public_path
+    FileUtils.cp Rails.root.join('test', 'assets', 'javascripts', 'application.js'), assets_path
   end
 
   def precompile_assets(runtime)
@@ -20,12 +30,12 @@ class PrecompileBenchmark
 
   def execjs_assets(runtime)
     ExecJS.runtime = runtime
-    source_code = Dir.glob(assets_path).map { |filename| File.read(filename) }.join
+    source_code = assets_files.map { |filename| File.read(filename) }.join
     @multiplier.times { ExecJS.compile source_code }
   end
 
   def run_benchmark name, files
-    FileUtils.rm_rf assets_path
+    clean_up
     FileUtils.cp files, assets_path
 
     puts  "\n\n" + ( "-" * 40) + name + ( "-" * 40) + "\n\n"
@@ -57,8 +67,8 @@ class PrecompileBenchmark
   def run
     puts "Every test will be run #{@multiplier} time(s)"
 
-    minified_js = Dir.glob(File.join('test', 'assets', 'javascript', 'minified', "*.js"))
-    development_js = Dir.glob(File.join('test', 'assets', 'javascript', 'development', "*.js"))
+    minified_js = Dir.glob(Rails.root.join('test', 'assets', 'javascripts', 'minified', "*.js"))
+    development_js = Dir.glob(Rails.root.join('test', 'assets', 'javascripts', 'development', "*.js"))
 
     run_benchmark 'minified', minified_js
     run_benchmark 'development', development_js   
